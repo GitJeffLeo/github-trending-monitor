@@ -50,14 +50,12 @@ jobs:
           # 复制独立 HTML 作为首页
           cp github-trending-standalone.html docs/index.html
           # 复制数据文件
-          cp data/*.json docs/data/
+          cp data/*.json docs/data/ || true
           echo "docs/ 目录准备完毕"
           ls -la docs/
-          ls -la docs/data/
+          ls -la docs/data/ || true
 
       - name: 提交数据更新到仓库
-        env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
