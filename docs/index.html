@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GitHub 黑马监测</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17211d;
+        --muted: #65716c;
+        --line: #d8dfd9;
+        --panel: #ffffff;
+        --bg: #f4f6f1;
+        --accent: #16704a;
+        --accent-soft: #dff2e7;
+        --warm: #b7791f;
+        --warm-soft: #fff3d8;
+        --blue: #285cc4;
+        --blue-soft: #e7eefc;
+        --shadow: 0 18px 44px rgba(23,33,29,0.08);
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+        color: var(--ink);
+        background:
+          linear-gradient(180deg, rgba(22,112,74,0.12), transparent 360px),
+          radial-gradient(circle at 85% 0%, rgba(183,121,31,0.12), transparent 260px),
+          var(--bg);
+        padding: 24px 16px 52px;
+      }
+      .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+      h1,h2,h3,p { margin: 0; }
+      .topbar { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 22px; flex-wrap: wrap; }
+      .eyebrow { margin-bottom: 8px; color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
+      h1 { font-size: clamp(28px,5vw,48px); line-height: 1.02; }
+      .topbar p { margin-top: 10px; color: var(--muted); line-height: 1.6; max-width: 680px; }
+      .date-picker { display: grid; gap: 8px; min-width: 176px; color: var(--muted); font-size: 14px; }
+      .date-select {
+        font: inherit; min-width: 176px; border: 1px solid var(--line);
+        border-radius: 8px; padding: 10px 12px; background: var(--panel); color: var(--ink);
+      }
+      .metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 18px; }
+      .metrics > div {
+        background: rgba(255,255,255,0.88); border: 1px solid var(--line);
+        border-radius: 8px; box-shadow: var(--shadow); padding: 18px;
+      }
+      .metrics span { color: var(--muted); font-size: 13px; }
+      .metrics strong { display: block; margin-top: 8px; font-size: 30px; line-height: 1; }
+      .section {
+        background: rgba(255,255,255,0.88); border: 1px solid var(--line);
+        border-radius: 8px; box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px;
+      }
+      .section-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; margin-bottom: 16px; flex-wrap: wrap; }
+      .section-head h2 { font-size: 21px; }
+      .section-head p { margin-top: 10px; color: var(--muted); line-height: 1.6; }
+      .section-head span { color: var(--muted); font-size: 13px; }
+      .rising-grid { display: grid; grid-template-columns: 1.25fr repeat(4,1fr); gap: 12px; }
+      .rising-card {
+        display: flex; min-height: 200px; flex-direction: column; gap: 12px;
+        padding: 16px; border: 1px solid var(--line); border-radius: 8px;
+        color: inherit; text-decoration: none; background: #fff;
+      }
+      .rising-card.primary { background: linear-gradient(180deg,#f8fff9,#fff); border-color: rgba(22,112,74,0.34); }
+      .rising-card:hover, .rank-row:hover { border-color: rgba(22,112,74,0.46); box-shadow: 0 12px 28px rgba(22,112,74,0.10); }
+      .rising-topline { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+      .rank-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 30px; border-radius: 999px; padding: 5px 10px;
+        font-size: 13px; font-weight: 800; background: var(--accent-soft); color: var(--accent);
+      }
+      .rising-topline strong { color: var(--warm); font-size: 21px; }
+      .rising-card h3 { font-size: 17px; line-height: 1.35; overflow-wrap: anywhere; }
+      .rising-card p, .use-case { color: #38443f; font-size: 14px; line-height: 1.65; }
+      .repo-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+      .repo-meta span { padding: 4px 8px; border-radius: 999px; background: #eef2f0; color: #44514b; font-size: 12px; }
+      .rank-table { display: grid; gap: 8px; }
+      .rank-row {
+        display: grid; grid-template-columns: 64px minmax(280px,1fr) 110px 116px 104px; gap: 14px;
+        align-items: center; min-height: 110px; padding: 14px; border: 1px solid var(--line);
+        border-radius: 8px; color: inherit; text-decoration: none; background: #fff;
+      }
+      .rank-num { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font-weight: 900; }
+      .repo-title { font-weight: 900; overflow-wrap: anywhere; }
+      .use-case { margin-top: 6px; }
+      .repo-desc { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+      .rank-stats { display: grid; gap: 4px; justify-items: end; }
+      .rank-stats strong { font-size: 20px; }
+      .rank-stats span { color: var(--muted); font-size: 12px; }
+      .rank-change {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 30px; border-radius: 999px; padding: 5px 10px;
+        font-size: 13px; font-weight: 800;
+        background: var(--warm-soft); color: var(--warm); white-space: nowrap;
+      }
+      .status { text-align: center; padding: 48px 16px; color: var(--muted); }
+      .status-btn {
+        margin-top: 16px; padding: 10px 24px; border: 1px solid var(--accent);
+        border-radius: 8px; background: var(--accent); color: #fff; font: inherit; cursor: pointer; font-size: 15px;
+      }
+      .status-btn:hover { opacity: 0.85; }
+      .status-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      @media (max-width: 1100px) {
+        .rising-grid { grid-template-columns: repeat(2,1fr); }
+        .rank-row { grid-template-columns: 56px minmax(0,1fr) 96px; }
+        .rank-stats:nth-of-type(2), .rank-change { display: none; }
+      }
+      @media (max-width: 720px) {
+        .topbar { flex-direction: column; align-items: stretch; }
+        .rising-grid { grid-template-columns: 1fr; }
+        .rank-row { grid-template-columns: 1fr; }
+        .rank-stats { justify-items: start; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Daily GitHub CreativeRadar</p>
+          <h1>GitHub 黑马监测</h1>
+          <p id="subtitle">点击「抓取今日数据」开始</p>
+        </div>
+        <div class="date-picker">
+          <span>历史日期</span>
+          <select id="dateSelect" class="date-select" disabled>
+            <option>暂无数据</option>
+          </select>
+        </div>
+      </header>
+
+      <section class="metrics" aria-label="今日概览">
+        <div><span>记录项目</span><strong id="repoCount">-</strong></div>
+        <div><span>新入榜</span><strong id="newCount">-</strong></div>
+        <div><span>最高日增星</span><strong id="maxStarsToday">-</strong></div>
+      </section>
+
+      <section class="section rising-section">
+        <div class="section-head">
+          <div>
+            <h2>星数飙升前五</h2>
+            <p>今天最值得先扫一眼的五个项目。</p>
+          </div>
+          <span>按今日新增星数排序</span>
+        </div>
+        <div id="risingList" class="rising-grid">
+          <div class="status"><p>暂无数据，请点击「抓取今日数据」</p></div>
+        </div>
+      </section>
+
+      <section class="section ranking-section">
+        <div class="section-head">
+          <div>
+            <h2>当天排名前十</h2>
+            <p>每个项目都补了一句中文用途概括，先看它能解决什么问题。</p>
+          </div>
+          <span>GitHub Trending Daily</span>
+        </div>
+        <div id="topTenList" class="rank-table"></div>
+      </section>
+
+      <div style="text-align:center;margin-top:24px;">
+        <button id="fetchBtn" class="status-btn">🔄 抓取今日数据</button>
+        <span style="color:var(--muted);font-size:13px;margin-left:12px;" id="lastUpdate"></span>
+      </div>
+    </main>
+
+    <script>
+    // ===== 配置 =====
+    const CORS_PROXIES = [
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+    ];
+
+    // 中文用途概括
+    const SUMMARIES = {
+      "chopratejas/headroom": "面向 AI 应用的上下文压缩工具，在日志、工具输出、文件和 RAG 片段进入大模型前先压缩，减少 token 消耗，同时尽量保持回答质量。",
+      "affaan-m/ECC": "给 Claude Code、Codex、Cursor 等编程代理准备的能力增强框架，重点在技能、记忆、安全和研究式开发流程。",
+      "aquasecurity/trivy": "安全扫描工具，用来检查容器、Kubernetes、代码仓库和云环境里的漏洞、配置错误、密钥泄露和 SBOM 风险。",
+      "NousResearch/hermes-agent": "可随用户使用不断成长的 AI Agent 项目，主打长期陪伴、能力积累和更个性化的代理体验。",
+      "microsoft/markitdown": "微软出品的文件转 Markdown 工具，可以把 Office 文档、PDF 等资料转换成适合 AI 读取和处理的 Markdown 文本。",
+      "nesquena/hermes-webui": "Hermes Agent 的网页端和移动端界面，让用户可以更方便地从浏览器或手机使用 Hermes Agent。",
+      "D4Vinci/Scrapling": "自适应网页抓取框架，从单个请求到大规模爬取都能覆盖，适合做数据采集、内容抽取和自动化爬虫。",
+      "opendataloader-project/opendataloader-pdf": "面向 AI 数据处理的 PDF 解析器，帮助把 PDF 内容整理成更容易被模型读取、检索和自动化处理的数据。",
+      "odoo/odoo": "开源企业应用套件，覆盖 CRM、销售、库存、财务、人力等业务系统，适合搭建一体化公司管理平台。",
+      "Open-LLM-VTuber/Open-LLM-VTuber": "本地运行的语音交互虚拟主播项目，可以让用户用语音和任意大模型对话，并支持语音打断和 Live2D 形象。",
+      "jwasham/coding-interview-university": "系统化的计算机科学自学路线，帮助准备软件工程师面试，内容覆盖算法、数据结构和基础知识。",
+      "lyogavin/airllm": "大模型低显存推理方案，可在单张 4GB 显卡上运行 70B 量级模型，大幅降低本地部署大模型的硬件门槛。",
+      "supermemoryai/supermemory": "面向 AI 时代的记忆引擎，提供极快且可扩展的记忆存储与检索 API，适合给 AI 助手或智能体补充持久化记忆能力。",
+      "HKUDS/Vibe-Trading": "个人交易代理项目，尝试用 AI Agent 辅助交易分析、策略理解和自动化投资决策流程。"
+    };
+
+    // ===== 工具函数 =====
+    function esc(s) {
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function summarizeUse(repo, name, desc) {
+      if (SUMMARIES[repo]) return SUMMARIES[repo];
+      const text = `${name} ${desc}`.toLowerCase();
+      if (text.includes("markdown")) return "这个项目主要用于把文件或内容转换成 Markdown，方便后续整理、检索和交给 AI 处理。";
+      if (text.includes("pdf")) return "这个项目围绕 PDF 解析和内容抽取，适合把文档资料整理成更适合自动化处理的数据。";
+      if (text.includes("agent")) return "这个项目围绕 AI Agent 构建，可能用于自动完成任务、增强代理能力或提供更自然的交互体验。";
+      if (text.includes("scrap") || text.includes("crawl")) return "这个项目主要用于网页抓取和数据采集，适合把网站内容批量整理成可分析的数据。";
+      if (text.includes("vulnerab") || text.includes("security")) return "这个项目偏安全工具方向，用来发现漏洞、配置风险或代码与基础设施中的安全问题。";
+      if (text.includes("llm") || text.includes("model")) return "这个项目服务于大模型应用，可能用于模型调用、推理优化、上下文处理或交互体验改进。";
+      if (text.includes("business") || text.includes("crm")) return "这个项目偏业务系统方向，适合支撑企业管理、销售、客户关系或内部流程。";
+      return `这个 ${desc ? "开源" : ""}项目正在获得关注，名称「${name}」；建议点开仓库进一步确认。`;
+    }
+
+    function metaPills(item) {
+      const parts = [
+        item.language || "Unknown",
+        `${Number(item.stars||0).toLocaleString("zh-CN")} stars`,
+        `今日 +${Number(item.starsToday||0).toLocaleString("zh-CN")}`
+      ];
+      if (item.isNewToday) {
+        parts.push("新入榜");
+      } else if (item.rankChange !== null && item.rankChange !== undefined) {
+        if (item.rankChange === 0) parts.push("排名持平");
+        else if (item.rankChange > 0) parts.push(`上升 ${item.rankChange}`);
+        else parts.push(`下降 ${Math.abs(item.rankChange)}`);
+      }
+      return parts.map(s => `<span>${esc(s)}</span>`).join("");
+    }
+
+    function parseNum(s) { return Number(String(s||"").replace(/[^\d]/g,"")) || 0; }
+
+    // ===== 解析 GitHub Trending HTML =====
+    function parseGitHubHTML(html) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const articles = doc.querySelectorAll("article.Box-row");
+      const items = [];
+
+      articles.forEach((article, index) => {
+        try {
+          const h2 = article.querySelector("h2");
+          if (!h2) return;
+          const repoLink = h2.querySelector("a");
+          if (!repoLink) return;
+          const repoPath = repoLink.getAttribute("href").replace(/^\/+/,"").replace(/\s/g,"");
+          const [owner, name] = repoPath.split("/");
+
+          const descEl = article.querySelector("p.col-9");
+          const description = descEl ? descEl.textContent.trim() : "";
+
+          const langEl = article.querySelector("[itemprop='programmingLanguage']");
+          const language = langEl ? langEl.textContent.trim() : "Unknown";
+
+          const starsLink = article.querySelector("a[href$='/stargazers']");
+          const stars = starsLink ? parseNum(starsLink.textContent) : 0;
+
+          const forksLink = article.querySelector("a[href$='/forks']");
+          const forks = forksLink ? parseNum(forksLink.textContent) : 0;
+
+          const bodyText = article.textContent || "";
+          const starsTodayMatch = bodyText.match(/([\d,]+)\s+stars?\s+today/i);
+          const starsToday = starsTodayMatch ? parseNum(starsTodayMatch[1]) : 0;
+
+          items.push({
+            rank: index + 1,
+            owner, name, repo: repoPath,
+            url: `https://github.com/${repoPath}`,
+            description, language, stars, forks, starsToday
+          });
+        } catch(e) { console.warn("解析第", index+1, "项失败", e); }
+      });
+      return items;
+    }
+
+    // ===== 本地存储 =====
+    const INDEX_KEY = "gh_trending_index";
+
+    function getIndex() {
+      const raw = localStorage.getItem(INDEX_KEY);
+      return raw ? JSON.parse(raw) : { snapshots: [] };
+    }
+
+    function saveSnapshot(snapshot) {
+      const dataKey = `gh_trending_${snapshot.date}`;
+      let index = getIndex();
+      index.snapshots = index.snapshots.filter(s => s.date !== snapshot.date);
+      index.snapshots.push({ date: snapshot.date, capturedAt: snapshot.capturedAt });
+      index.snapshots.sort((a,b) => a.date.localeCompare(b.date));
+      localStorage.setItem(INDEX_KEY, JSON.stringify(index));
+      localStorage.setItem(dataKey, JSON.stringify(snapshot));
+    }
+
+    function loadSnapshot(date) {
+      const raw = localStorage.getItem(`gh_trending_${date}`);
+      return raw ? JSON.parse(raw) : null;
+    }
+
+    // ===== 渲染 =====
+    function renderSnapshot(snapshot) {
+      const repos = snapshot.repositories || [];
+      document.getElementById("repoCount").textContent = repos.length.toLocaleString("zh-CN");
+      document.getElementById("newCount").textContent = repos.filter(r => r.isNewToday).length.toLocaleString("zh-CN");
+      const maxStar = repos.length > 0 ? Math.max(...repos.map(r => r.starsToday)) : 0;
+      document.getElementById("maxStarsToday").textContent = maxStar.toLocaleString("zh-CN");
+
+      // 飙升前五
+      const risingList = document.getElementById("risingList");
+      const topRising = snapshot.topRising || [];
+      if (topRising.length === 0) {
+        risingList.innerHTML = '<div class="status"><p>无飙升数据</p></div>';
+      } else {
+        risingList.innerHTML = topRising.map((item, i) => risingCard(item, i)).join("");
+      }
+
+      // 排名前十
+      const topTenList = document.getElementById("topTenList");
+      const topTen = snapshot.topTen || [];
+      if (topTen.length === 0) {
+        topTenList.innerHTML = "";
+      } else {
+        topTenList.innerHTML = topTen.map(item => rankRow(item)).join("");
+      }
+
+      document.getElementById("lastUpdate").textContent = `最近更新：${new Date().toLocaleTimeString("zh-CN")}`;
+    }
+
+    function risingCard(item, index) {
+      const cls = index === 0 ? "rising-card primary" : "rising-card";
+      return `
+        <a class="${cls}" href="${esc(item.url)}" target="_blank" rel="noreferrer">
+          <div class="rising-topline">
+            <span class="rank-badge">#${index+1}</span>
+            <strong>+${Number(item.starsToday||0).toLocaleString("zh-CN")}</strong>
+          </div>
+          <h3>${esc(item.repo)}</h3>
+          <p>${esc(summarizeUse(item.repo, item.name, item.description))}</p>
+          <div class="repo-meta">${metaPills(item)}</div>
+        </a>`;
+    }
+
+    function rankRow(item) {
+      const cls = item.isNewToday ? "rank-row is-new" : "rank-row";
+      return `
+        <a class="${cls}" href="${esc(item.url)}" target="_blank" rel="noreferrer">
+          <div class="rank-num">#${item.rank}</div>
+          <div class="rank-main">
+            <div class="repo-title">${esc(item.repo)}</div>
+            <p class="use-case">${esc(summarizeUse(item.repo, item.name, item.description))}</p>
+            <p class="repo-desc">${esc(item.description || "暂无简介")}</p>
+          </div>
+          <div class="rank-stats">
+            <strong>${Number(item.starsToday||0).toLocaleString("zh-CN")}</strong>
+            <span>今日增星</span>
+          </div>
+          <div class="rank-stats">
+            <strong>${Number(item.stars||0).toLocaleString("zh-CN")}</strong>
+            <span>总星数</span>
+          </div>
+          <div class="rank-change">${esc(item.isNewToday ? "新入榜" : (item.rankChange===0?"排名持平":item.rankChange>0?`上升 ${item.rankChange}`:`下降 ${Math.abs(item.rankChange)}`))}</div>
+        </a>`;
+    }
+
+    // ===== 初始化历史日期选择器 =====
+    function initDateSelect() {
+      const index = getIndex();
+      const sel = document.getElementById("dateSelect");
+      if (index.snapshots.length === 0) {
+        sel.innerHTML = "<option>暂无数据</option>";
+        sel.disabled = true;
+        return;
+      }
+      sel.disabled = false;
+      sel.innerHTML = index.snapshots.slice().reverse().map(s => {
+        const isLatest = s.date === index.snapshots.at(-1).date;
+        return `<option value="${s.date}" ${isLatest?"selected":""}>${s.date}${isLatest?" (最新)":""}</option>`;
+      }).join("");
+      sel.addEventListener("change", () => {
+        const snap = loadSnapshot(sel.value);
+        if (snap) renderSnapshot(snap);
+      });
+    }
+
+    // ===== 核心：抓取数据 =====
+    async function fetchTrending() {
+      const btn = document.getElementById("fetchBtn");
+      btn.disabled = true;
+      btn.textContent = "⏳ 正在抓取...";
+
+      const risingList = document.getElementById("risingList");
+      risingList.innerHTML = '<div class="status"><p>⏳ 正在通过代理抓取 GitHub Trending 页面，请稍候...</p></div>';
+      document.getElementById("topTenList").innerHTML = "";
+
+      // 尝试多个 CORS 代理
+      let html = "";
+      let errMsg = "";
+      for (const proxyFn of CORS_PROXIES) {
+        const url = proxyFn("https://github.com/trending?since=daily");
+        try {
+          const resp = await fetch(url, { signal: AbortSignal.timeout(20000) });
+          if (resp.ok) { html = await resp.text(); break; }
+        } catch(e) { errMsg = e.message; continue; }
+      }
+
+      if (!html) {
+        risingList.innerHTML = `<div class="status">
+          <p>❌ 抓取失败：所有 CORS 代理均不可用。</p>
+          <p style="margin-top:12px;font-size:14px;">错误详情：${esc(errMsg)}</p>
+          <p style="margin-top:12px;font-size:14px;">建议：直接访问 <a href="https://github.com/trending?since=daily" target="_blank">GitHub Trending</a> 查看。</p>
+        </div>`;
+        btn.disabled = false;
+        btn.textContent = "🔄 重试抓取";
+        return;
+      }
+
+      try {
+        const repos = parseGitHubHTML(html);
+        if (repos.length === 0) throw new Error("页面解析未找到任何项目，GitHub 可能已改版或代理返回了错误内容");
+
+        // 与本地历史数据对比
+        const index = getIndex();
+        const prevDate = index.snapshots.length > 0 ? index.snapshots.at(-1).date : null;
+        const prevSnap = prevDate ? loadSnapshot(prevDate) : null;
+        const prevMap = new Map();
+        if (prevSnap && prevSnap.repositories) {
+          prevSnap.repositories.forEach(r => prevMap.set(r.repo, r));
+        }
+
+        const enriched = repos.map((r, i) => {
+          const prev = prevMap.get(r.repo);
+          return {
+            ...r,
+            previousRank: prev ? prev.rank : null,
+            rankChange: prev ? prev.rank - (i+1) : null,
+            isNewToday: !prev
+          };
+        });
+
+        const today = new Date().toISOString().slice(0,10);
+        const snapshot = {
+          date: today,
+          source: "https://github.com/trending?since=daily",
+          capturedAt: new Date().toISOString(),
+          topRising: [...enriched].sort((a,b) => b.starsToday - a.starsToday).slice(0,5),
+          topTen: enriched.slice(0,10),
+          repositories: enriched
+        };
+
+        saveSnapshot(snapshot);
+        renderSnapshot(snapshot);
+
+        // 更新日期选择器
+        initDateSelect();
+
+        const newCount = enriched.filter(r => r.isNewToday).length;
+        document.getElementById("subtitle").textContent = `${today} 抓取自 GitHub Trending，共 ${repos.length} 个项目，${newCount} 个新入榜。`;
+      } catch(err) {
+        risingList.innerHTML = `<div class="status"><p>❌ 解析失败：${esc(err.message)}</p></div>`;
+      }
+
+      btn.disabled = false;
+      btn.textContent = "🔄 重新抓取";
+    }
+
+    // ===== 启动 =====
+    document.getElementById("fetchBtn").addEventListener("click", fetchTrending);
+
+    (function init() {
+      const index = getIndex();
+      initDateSelect();
+      if (index.snapshots.length > 0) {
+        const latest = index.snapshots.at(-1);
+        const snap = loadSnapshot(latest.date);
+        if (snap) {
+          renderSnapshot(snap);
+          document.getElementById("subtitle").textContent = `${snap.date} 加载自本地缓存，点击「抓取今日数据」更新。`;
+        }
+      }
+    })();
+    </script>
+  </body>
+</html>

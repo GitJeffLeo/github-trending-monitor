@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GitHub 黑马监测</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Daily GitHub Creative Radar</p>
+          <h1>GitHub 黑马监测</h1>
+          <p id="subtitle">读取每日记录中...</p>
+        </div>
+        <label class="date-picker">
+          日期
+          <select id="dateSelect"></select>
+        </label>
+      </header>
+
+      <section class="metrics" aria-label="今日概览">
+        <div>
+          <span>记录项目</span>
+          <strong id="repoCount">-</strong>
+        </div>
+        <div>
+          <span>新入榜</span>
+          <strong id="newCount">-</strong>
+        </div>
+        <div>
+          <span>最高日增星</span>
+          <strong id="maxStarsToday">-</strong>
+        </div>
+      </section>
+
+      <section class="rising-section">
+        <div class="section-head">
+          <div>
+            <h2>星数飙升前五</h2>
+            <p>今天最值得先扫一眼的五个项目。</p>
+          </div>
+          <span>按今日新增星数排序</span>
+        </div>
+        <div id="risingList" class="rising-grid"></div>
+      </section>
+
+      <section class="ranking-section">
+        <div class="section-head">
+          <div>
+            <h2>当天排名前十</h2>
+            <p>每个项目都补了一句中文用途概括，先看它能解决什么问题。</p>
+          </div>
+          <span>GitHub Trending Daily</span>
+        </div>
+        <div id="topTenList" class="rank-table"></div>
+      </section>
+
+      <section class="history-panel">
+        <div class="section-head">
+          <div>
+            <h2>每日记录</h2>
+            <p>后续会按日期积累，方便观察项目热度和创意方向的变化。</p>
+          </div>
+          <span id="historyCount">0 天</span>
+        </div>
+        <div id="historyList" class="history"></div>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

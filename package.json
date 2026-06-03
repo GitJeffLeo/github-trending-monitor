@@ -1,0 +1,13 @@
+{
+  "name": "github-rising-stars-watch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Daily GitHub trending snapshot and comparison dashboard.",
+  "type": "module",
+  "scripts": {
+    "fetch": "node scripts/fetch-github-trending.mjs",
+    "build": "node scripts/build-report.mjs",
+    "fetch:build": "node scripts/fetch-github-trending.mjs && node scripts/build-report.mjs",
+    "serve": "node scripts/serve.mjs"
+  }
+}

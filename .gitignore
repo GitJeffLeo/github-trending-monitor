@@ -1,0 +1,9 @@
+node_modules/
+data/
+*.log
+.workbuddy/
+*.exe
+__pycache__/
+*.pyc
+.DS_Store
+*.ps1.bak

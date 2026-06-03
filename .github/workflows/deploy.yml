@@ -1,0 +1,71 @@
+name: Fetch GitHub Trending & Deploy
+
+on:
+  schedule:
+    # 每天 UTC 1:00 = 北京时间 09:00
+    - cron: '0 1 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  fetch-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fetch GitHub Trending data
+        run: node scripts/fetch-github-trending.mjs
+
+      - name: Build report
+        run: node scripts/build-report.mjs
+
+      - name: Copy standalone HTML to docs/
+        run: |
+          cp github-trending-standalone.html docs/index.html
+          # 也将最新报告复制过去
+          TODAY=$(date -u +'%Y-%m-%d')
+          if [ -f "data/${TODAY}.json" ]; then
+            echo "Data file exists for ${TODAY}"
+          fi
+
+      - name: Commit and push data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ docs/
+          git diff --staged --quiet || git commit -m "chore: auto-update trending data for $(date -u +'%Y-%m-%d')"
+          git push
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

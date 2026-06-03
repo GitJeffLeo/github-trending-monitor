@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GitHub 黑马监测 - 2026-06-04</title>
+    <style>:root {
+  color-scheme: light;
+  --ink: #17211d;
+  --muted: #65716c;
+  --line: #d8dfd9;
+  --panel: #ffffff;
+  --bg: #f4f6f1;
+  --accent: #16704a;
+  --accent-soft: #dff2e7;
+  --warm: #b7791f;
+  --warm-soft: #fff3d8;
+  --blue: #285cc4;
+  --blue-soft: #e7eefc;
+  --shadow: 0 18px 44px rgba(23, 33, 29, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(22, 112, 74, 0.12), transparent 360px),
+    radial-gradient(circle at 85% 0%, rgba(183, 121, 31, 0.12), transparent 260px),
+    var(--bg);
+}
+
+.shell {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 34px 0 52px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.topbar,
+.report-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 1.02;
+}
+
+.topbar p,
+.section-head p {
+  margin-top: 10px;
+  max-width: 760px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.date-picker,
+.date-card {
+  display: grid;
+  gap: 8px;
+  min-width: 176px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.date-card {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.date-card strong {
+  color: var(--ink);
+  font-size: 20px;
+}
+
+select,
+button {
+  font: inherit;
+}
+
+select {
+  min-width: 176px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.metrics div,
+.rising-section,
+.ranking-section,
+.history-panel,
+.panel {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.metrics div {
+  padding: 18px;
+}
+
+.metrics span,
+.section-head span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.metrics strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.rising-section,
+.ranking-section,
+.history-panel,
+.panel {
+  padding: 20px;
+}
+
+.rising-section,
+.ranking-section {
+  margin-bottom: 16px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.section-head h2 {
+  font-size: 21px;
+}
+
+.rising-grid {
+  display: grid;
+  grid-template-columns: 1.25fr repeat(4, 1fr);
+  gap: 12px;
+}
+
+.rising-card {
+  display: flex;
+  min-height: 214px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  background: #fff;
+}
+
+.rising-card.primary {
+  background: linear-gradient(180deg, #f8fff9, #ffffff);
+  border-color: rgba(22, 112, 74, 0.34);
+}
+
+.rising-card:hover,
+.rank-row:hover {
+  border-color: rgba(22, 112, 74, 0.46);
+  box-shadow: 0 12px 28px rgba(22, 112, 74, 0.10);
+}
+
+.rising-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.rank-badge,
+.rank-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rank-badge {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rising-topline strong {
+  color: var(--warm);
+  font-size: 21px;
+}
+
+.rising-card h3 {
+  font-size: 17px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rising-card p,
+.use-case {
+  color: #38443f;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.repo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.repo-meta span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef2f0;
+  color: #44514b;
+  font-size: 12px;
+}
+
+.rank-table {
+  display: grid;
+  gap: 8px;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: 64px minmax(280px, 1fr) 110px 116px 104px;
+  gap: 14px;
+  align-items: center;
+  min-height: 116px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  background: #fff;
+}
+
+.rank-row.is-new {
+  border-color: rgba(183, 121, 31, 0.42);
+}
+
+.rank-num {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.repo-title {
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.use-case {
+  margin-top: 6px;
+}
+
+.repo-desc {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rank-stats {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.rank-stats strong {
+  font-size: 20px;
+}
+
+.rank-stats span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rank-change {
+  background: var(--warm-soft);
+  color: var(--warm);
+  white-space: nowrap;
+}
+
+.history-panel {
+  margin-top: 16px;
+}
+
+.history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--ink);
+  background: #fff;
+  cursor: pointer;
+}
+
+.history-item.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.grid,
+.repo-list,
+.repo-card,
+.repo-rank {
+  display: contents;
+}
+
+@media (max-width: 1100px) {
+  .rising-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rank-row {
+    grid-template-columns: 56px minmax(0, 1fr) 96px;
+  }
+
+  .rank-stats:nth-of-type(2),
+  .rank-change {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 20px, 1240px);
+    padding-top: 22px;
+  }
+
+  .topbar,
+  .report-hero,
+  .section-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metrics,
+  .rising-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rank-row {
+    grid-template-columns: 1fr;
+  }
+
+  .rank-num {
+    width: 54px;
+  }
+
+  .rank-stats {
+    justify-items: start;
+  }
+}
+</style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar report-hero">
+        <div>
+          <p class="eyebrow">Daily GitHub Creative Radar</p>
+          <h1>GitHub 黑马监测</h1>
+          <p>2026-06-04 采集自 GitHub Trending Daily，重点观察今天突然冒头的项目和创意方向。</p>
+        </div>
+        <div class="date-card">
+          <span>最新记录</span>
+          <strong>2026-06-04</strong>
+        </div>
+      </header>
+
+      <section class="metrics" aria-label="今日概览">
+        <div><span>记录项目</span><strong>14</strong></div>
+        <div><span>新入榜</span><strong>0</strong></div>
+        <div><span>最高日增星</span><strong>3,528</strong></div>
+      </section>
+
+      <section class="rising-section">
+        <div class="section-head">
+          <div>
+            <h2>星数飙升前五</h2>
+            <p>今天最值得先扫一眼的五个项目。</p>
+          </div>
+          <span>按今日新增星数排序</span>
+        </div>
+        <div class="rising-grid">
+    <a class="rising-card primary" href="https://github.com/chopratejas/headroom" target="_blank" rel="noreferrer">
+      <div class="rising-topline">
+        <span class="rank-badge">#1</span>
+        <strong>+3,528</strong>
+      </div>
+      <h3>chopratejas/headroom</h3>
+      <p>面向 AI 应用的上下文压缩工具，可以在日志、工具输出、文件和 RAG 片段进入大模型前先压缩，减少 token 消耗，同时尽量保持回答质量。</p>
+      <div class="repo-meta"><span>Python</span><span>9,325 stars</span><span>今日 +3,528</span><span>排名持平</span></div>
+    </a>
+    <a class="rising-card " href="https://github.com/affaan-m/ECC" target="_blank" rel="noreferrer">
+      <div class="rising-topline">
+        <span class="rank-badge">#2</span>
+        <strong>+2,147</strong>
+      </div>
+      <h3>affaan-m/ECC</h3>
+      <p>给 Claude Code、Codex、Cursor 等编程代理准备的能力增强框架，重点在技能、记忆、安全和研究式开发流程，让代理更像一个可调优的工程搭档。</p>
+      <div class="repo-meta"><span>JavaScript</span><span>205,505 stars</span><span>今日 +2,147</span><span>排名持平</span></div>
+    </a>
+    <a class="rising-card " href="https://github.com/microsoft/markitdown" target="_blank" rel="noreferrer">
+      <div class="rising-topline">
+        <span class="rank-badge">#3</span>
+        <strong>+2,006</strong>
+      </div>
+      <h3>microsoft/markitdown</h3>
+      <p>微软出的文件转 Markdown 工具，可以把 Office 文档、PDF 等资料转换成适合 AI 读取和处理的 Markdown 文本。</p>
+      <div class="repo-meta"><span>Python</span><span>142,709 stars</span><span>今日 +2,006</span><span>排名持平</span></div>
+    </a>
+    <a class="rising-card " href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noreferrer">
+      <div class="rising-topline">
+        <span class="rank-badge">#4</span>
+        <strong>+1,736</strong>
+      </div>
+      <h3>NousResearch/hermes-agent</h3>
+      <p>一个可随用户使用不断成长的 AI Agent 项目，主打长期陪伴、能力积累和更个性化的代理体验。</p>
+      <div class="repo-meta"><span>Python</span><span>178,889 stars</span><span>今日 +1,736</span><span>排名持平</span></div>
+    </a>
+    <a class="rising-card " href="https://github.com/D4Vinci/Scrapling" target="_blank" rel="noreferrer">
+      <div class="rising-topline">
+        <span class="rank-badge">#5</span>
+        <strong>+1,078</strong>
+      </div>
+      <h3>D4Vinci/Scrapling</h3>
+      <p>自适应网页抓取框架，从单个请求到大规模爬取都能覆盖，适合做数据采集、内容抽取和自动化爬虫。</p>
+      <div class="repo-meta"><span>Python</span><span>60,094 stars</span><span>今日 +1,078</span><span>排名持平</span></div>
+    </a></div>
+      </section>
+
+      <section class="ranking-section">
+        <div class="section-head">
+          <div>
+            <h2>当天排名前十</h2>
+            <p>每个项目都补了一句中文用途概括，先看它能解决什么问题。</p>
+          </div>
+          <span>GitHub Trending Daily</span>
+        </div>
+        <div class="rank-table">
+    <a class="rank-row " href="https://github.com/chopratejas/headroom" target="_blank" rel="noreferrer">
+      <div class="rank-num">#1</div>
+      <div class="rank-main">
+        <div class="repo-title">chopratejas/headroom</div>
+        <p class="use-case">面向 AI 应用的上下文压缩工具，可以在日志、工具输出、文件和 RAG 片段进入大模型前先压缩，减少 token 消耗，同时尽量保持回答质量。</p>
+        <p class="repo-desc">Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 60-95% fewer tokens, same answers. Library, proxy, MCP server.</p>
+      </div>
+      <div class="rank-stats">
+        <strong>3,528</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>9,325</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/affaan-m/ECC" target="_blank" rel="noreferrer">
+      <div class="rank-num">#2</div>
+      <div class="rank-main">
+        <div class="repo-title">affaan-m/ECC</div>
+        <p class="use-case">给 Claude Code、Codex、Cursor 等编程代理准备的能力增强框架，重点在技能、记忆、安全和研究式开发流程，让代理更像一个可调优的工程搭档。</p>
+        <p class="repo-desc">The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.</p>
+      </div>
+      <div class="rank-stats">
+        <strong>2,147</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>205,505</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/aquasecurity/trivy" target="_blank" rel="noreferrer">
+      <div class="rank-num">#3</div>
+      <div class="rank-main">
+        <div class="repo-title">aquasecurity/trivy</div>
+        <p class="use-case">安全扫描工具，用来检查容器、Kubernetes、代码仓库和云环境里的漏洞、配置错误、密钥泄露和 SBOM 风险。</p>
+        <p class="repo-desc">Find vulnerabilities, misconfigurations, secrets, SBOM in containers, Kubernetes, code repositories, clouds and more</p>
+      </div>
+      <div class="rank-stats">
+        <strong>26</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>35,349</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noreferrer">
+      <div class="rank-num">#4</div>
+      <div class="rank-main">
+        <div class="repo-title">NousResearch/hermes-agent</div>
+        <p class="use-case">一个可随用户使用不断成长的 AI Agent 项目，主打长期陪伴、能力积累和更个性化的代理体验。</p>
+        <p class="repo-desc">The agent that grows with you</p>
+      </div>
+      <div class="rank-stats">
+        <strong>1,736</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>178,889</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/microsoft/markitdown" target="_blank" rel="noreferrer">
+      <div class="rank-num">#5</div>
+      <div class="rank-main">
+        <div class="repo-title">microsoft/markitdown</div>
+        <p class="use-case">微软出的文件转 Markdown 工具，可以把 Office 文档、PDF 等资料转换成适合 AI 读取和处理的 Markdown 文本。</p>
+        <p class="repo-desc">Python tool for converting files and office documents to Markdown.</p>
+      </div>
+      <div class="rank-stats">
+        <strong>2,006</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>142,709</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/nesquena/hermes-webui" target="_blank" rel="noreferrer">
+      <div class="rank-num">#6</div>
+      <div class="rank-main">
+        <div class="repo-title">nesquena/hermes-webui</div>
+        <p class="use-case">Hermes Agent 的网页端和移动端界面，让用户可以更方便地从浏览器或手机使用 Hermes Agent。</p>
+        <p class="repo-desc">Hermes WebUI: The best way to use Hermes Agent from the web or from your phone!</p>
+      </div>
+      <div class="rank-stats">
+        <strong>734</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>13,043</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/D4Vinci/Scrapling" target="_blank" rel="noreferrer">
+      <div class="rank-num">#7</div>
+      <div class="rank-main">
+        <div class="repo-title">D4Vinci/Scrapling</div>
+        <p class="use-case">自适应网页抓取框架，从单个请求到大规模爬取都能覆盖，适合做数据采集、内容抽取和自动化爬虫。</p>
+        <p class="repo-desc">🕷️ An adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl!</p>
+      </div>
+      <div class="rank-stats">
+        <strong>1,078</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>60,094</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/opendataloader-project/opendataloader-pdf" target="_blank" rel="noreferrer">
+      <div class="rank-num">#8</div>
+      <div class="rank-main">
+        <div class="repo-title">opendataloader-project/opendataloader-pdf</div>
+        <p class="use-case">面向 AI 数据处理的 PDF 解析器，帮助把 PDF 内容整理成更容易被模型读取、检索和自动化处理的数据。</p>
+        <p class="repo-desc">PDF Parser for AI-ready data. Automate PDF accessibility. Open-source.</p>
+      </div>
+      <div class="rank-stats">
+        <strong>573</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>23,193</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/odoo/odoo" target="_blank" rel="noreferrer">
+      <div class="rank-num">#9</div>
+      <div class="rank-main">
+        <div class="repo-title">odoo/odoo</div>
+        <p class="use-case">开源企业应用套件，覆盖 CRM、销售、库存、财务、人力等业务系统，适合搭建一体化公司管理平台。</p>
+        <p class="repo-desc">Odoo. Open Source Apps To Grow Your Business.</p>
+      </div>
+      <div class="rank-stats">
+        <strong>29</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>51,884</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a>
+    <a class="rank-row " href="https://github.com/Open-LLM-VTuber/Open-LLM-VTuber" target="_blank" rel="noreferrer">
+      <div class="rank-num">#10</div>
+      <div class="rank-main">
+        <div class="repo-title">Open-LLM-VTuber/Open-LLM-VTuber</div>
+        <p class="use-case">本地运行的语音交互虚拟主播项目，可以让用户用语音和任意大模型对话，并支持语音打断和 Live2D 形象。</p>
+        <p class="repo-desc">Talk to any LLM with hands-free voice interaction, voice interruption, and Live2D taking face running locally across platforms</p>
+      </div>
+      <div class="rank-stats">
+        <strong>702</strong>
+        <span>今日增星</span>
+      </div>
+      <div class="rank-stats">
+        <strong>8,884</strong>
+        <span>总星数</span>
+      </div>
+      <div class="rank-change">排名持平</div>
+    </a></div>
+      </section>
+
+      <section class="history-panel">
+        <div class="section-head">
+          <div>
+            <h2>每日记录</h2>
+            <p>后续会按日期积累，方便观察项目热度和创意方向的变化。</p>
+          </div>
+          <span>1 天</span>
+        </div>
+        <div class="history"><span class="history-item active">2026-06-04</span></div>
+      </section>
+    </main>
+  </body>
+</html>
