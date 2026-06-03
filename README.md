@@ -4,7 +4,7 @@
 
 ## 在线使用
 
-👉 **[点击查看最新报告](https://YOUR_USERNAME.github.io/github监测demo/)**
+👉 **[点击查看最新报告](https://gitjeffleo.github.io/github-trending-monitor/report.html)**
 
 > 首次使用请手动开启 GitHub Actions（见下方部署说明）
 
