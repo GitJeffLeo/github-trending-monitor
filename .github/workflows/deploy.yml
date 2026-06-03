@@ -6,11 +6,13 @@ on:
     - cron: '0 1 * * *'
   workflow_dispatch:  # 允许手动触发
 
+# 只开放最小权限
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
+# 避免重复部署
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -18,54 +20,65 @@ concurrency:
 jobs:
   fetch-and-deploy:
     runs-on: ubuntu-latest
+    # 设置部署环境
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Checkout
+      - name: Checkout 仓库
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 需要完整历史以便 git pull
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Install dependencies
+      - name: 安装依赖
         run: npm install
 
-      - name: Fetch GitHub Trending data
+      - name: 抓取 GitHub Trending 数据
         run: node scripts/fetch-github-trending.mjs
 
-      - name: Build report
+      - name: 生成报告
         run: node scripts/build-report.mjs
 
-      - name: Copy standalone HTML to docs/
+      - name: 准备 docs 目录（GitHub Pages 源）
         run: |
+          # 复制独立 HTML 作为首页
           cp github-trending-standalone.html docs/index.html
-          # 也将最新报告复制过去
-          TODAY=$(date -u +'%Y-%m-%d')
-          if [ -f "data/${TODAY}.json" ]; then
-            echo "Data file exists for ${TODAY}"
-          fi
+          # 复制数据目录
+          mkdir -p docs/data
+          cp data/*.json docs/data/
+          # 复制样式和脚本（供 index.html 使用）
+          cp styles.css docs/ 2>/dev/null || true
+          echo "docs/ 目录准备完毕"
+          ls -la docs/
+          ls -la docs/data/
 
-      - name: Commit and push data
+      - name: 提交数据更新到仓库
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ docs/
-          git diff --staged --quiet || git commit -m "chore: auto-update trending data for $(date -u +'%Y-%m-%d')"
-          git push
+          # 只在有变化时才提交
+          git diff --staged --quiet || {
+            git commit -m "chore: auto-update trending data for $(TZ=Asia/Shanghai date +'%Y-%m-%d')"
+            git pull --rebase
+            git push
+          }
+        continue-on-error: true  # 如果没有变化则跳过
 
-      - name: Setup Pages
+      - name: 配置 GitHub Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload artifact
+      - name: 上传 Pages 产物
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'docs'
 
-      - name: Deploy to GitHub Pages
+      - name: 部署到 GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
