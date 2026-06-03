@@ -1,5 +1,5 @@
 node_modules/
-data/
+# data/  # 需要版本管理，让 GitHub Actions 能提交每日数据
 *.log
 .workbuddy/
 *.exe
