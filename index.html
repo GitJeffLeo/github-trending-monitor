@@ -14,10 +14,16 @@
           <h1>GitHub 黑马监测</h1>
           <p id="subtitle">读取每日记录中...</p>
         </div>
-        <label class="date-picker">
-          日期
-          <select id="dateSelect"></select>
-        </label>
+        <div class="topbar-actions">
+          <label class="date-picker">
+            日期
+            <select id="dateSelect"></select>
+          </label>
+          <div class="fetch-action">
+            <button id="fetchBtn" class="status-btn" type="button">🔄 抓取今日数据</button>
+            <span id="fetchStatus" class="fetch-hint"></span>
+          </div>
+        </div>
       </header>
 
       <section class="metrics" aria-label="今日概览">

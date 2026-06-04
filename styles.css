@@ -51,6 +51,45 @@ p {
   margin-bottom: 22px;
 }
 
+.topbar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.fetch-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fetch-hint {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status-btn {
+  padding: 10px 24px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.status-btn:hover {
+  opacity: 0.85;
+}
+
+.status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .eyebrow {
   margin-bottom: 8px;
   color: var(--accent);

@@ -14,6 +14,11 @@ function reportFileName(snapshot) {
   return `${date}飙升${topStars}⭐️Report.html`;
 }
 
+function formatDateTime(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -166,6 +171,10 @@ async function main() {
         </div>
         <div class="history">${index.snapshots.slice().reverse().map((item) => `<span class="history-item ${item.date === snapshot.date ? "active" : ""}">${escapeHtml(item.date)}</span>`).join("")}</div>
       </section>
+
+      <footer class="report-footer">
+        <p>*报告生成时间：${escapeHtml(formatDateTime(new Date()))}*</p>
+      </footer>
     </main>
   </body>
 </html>`;

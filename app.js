@@ -7,6 +7,8 @@ const risingList = document.querySelector("#risingList");
 const topTenList = document.querySelector("#topTenList");
 const historyList = document.querySelector("#historyList");
 const historyCount = document.querySelector("#historyCount");
+const fetchBtn = document.querySelector("#fetchBtn");
+const fetchStatus = document.querySelector("#fetchStatus");
 
 const formatter = new Intl.NumberFormat("zh-CN");
 let summaries = {};
@@ -140,7 +142,7 @@ async function init() {
     const snapshots = index.snapshots ?? [];
 
     if (snapshots.length === 0) {
-      subtitle.textContent = "还没有记录，先运行一次采集。";
+      subtitle.textContent = "还没有记录，点击右上角「抓取今日数据」开始。";
       dateSelect.innerHTML = "<option>暂无数据</option>";
       return;
     }
@@ -161,5 +163,70 @@ async function init() {
     console.error(error);
   }
 }
+
+// ===== 抓取今日数据 =====
+async function fetchToday() {
+  fetchBtn.disabled = true;
+  fetchBtn.textContent = "⏳ 正在抓取...";
+  fetchStatus.textContent = "正在通知服务端，请稍候...";
+
+  try {
+    const resp = await fetch("/api/fetch", {
+      method: "POST",
+      signal: AbortSignal.timeout(8000)
+    });
+    const result = await resp.json();
+
+    if (!result.ok) {
+      fetchStatus.textContent = `⚠️ ${result.message}`;
+      fetchBtn.disabled = false;
+      fetchBtn.textContent = "🔄 抓取今日数据";
+      return;
+    }
+
+    fetchStatus.textContent = "⏳ 抓取任务已启动，等待完成...";
+
+    // 轮询状态，最多等 120 秒
+    const deadline = Date.now() + 120_000;
+    let done = false;
+
+    while (Date.now() < deadline) {
+      await new Promise(r => setTimeout(r, 3000));
+      const statusResp = await fetch("/api/fetch/status", { cache: "no-store" });
+      const status = await statusResp.json();
+
+      if (!status.running) {
+        done = true;
+        if (status.lastResult && status.lastResult.code === 0) {
+          fetchStatus.textContent = `✅ 抓取完成（${new Date().toLocaleTimeString("zh-CN")}）`;
+          // 重新加载最新数据
+          const index = await getJson("./data/index.json");
+          const latest = index.snapshots?.at(-1)?.date;
+          if (latest) {
+            dateSelect.value = latest;
+            await loadSnapshot(latest, index);
+          }
+        } else {
+          const errMsg = status.lastResult?.stderr?.slice(-200) || "未知错误";
+          fetchStatus.textContent = `❌ 抓取失败：${errMsg}`;
+        }
+        break;
+      }
+      fetchStatus.textContent = "⏳ 抓取中，请稍候...";
+    }
+
+    if (!done) {
+      fetchStatus.textContent = "⚠️ 抓取超时，请稍后手动刷新页面查看结果";
+    }
+
+  } catch (err) {
+    fetchStatus.textContent = `❌ 请求失败：${err.message}`;
+  } finally {
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = "🔄 重新抓取";
+  }
+}
+
+fetchBtn.addEventListener("click", fetchToday);
 
 init();
