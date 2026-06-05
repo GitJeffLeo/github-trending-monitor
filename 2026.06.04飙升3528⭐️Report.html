@@ -57,6 +57,45 @@ p {
   margin-bottom: 22px;
 }
 
+.topbar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.fetch-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fetch-hint {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status-btn {
+  padding: 10px 24px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.status-btn:hover {
+  opacity: 0.85;
+}
+
+.status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .eyebrow {
   margin-bottom: 8px;
   color: var(--accent);
@@ -303,6 +342,26 @@ select {
   margin-top: 6px;
 }
 
+/* 标签徽章 */
+.tag-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.tag-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
 .repo-desc {
   margin-top: 6px;
   color: var(--muted);
@@ -447,6 +506,7 @@ select {
       </div>
       <h3>chopratejas/headroom</h3>
       <p>面向 AI 应用的上下文压缩工具，可以在日志、工具输出、文件和 RAG 片段进入大模型前先压缩，减少 token 消耗，同时尽量保持回答质量。</p>
+      <div class="tag-badges"><span class="tag-badge">上下文工程</span><span class="tag-badge">大模型</span></div>
       <div class="repo-meta"><span>Python</span><span>9,424 stars</span><span>今日 +3,528</span><span>排名持平</span></div>
     </a>
     <a class="rising-card " href="https://github.com/affaan-m/ECC" target="_blank" rel="noreferrer">
@@ -456,6 +516,7 @@ select {
       </div>
       <h3>affaan-m/ECC</h3>
       <p>给 Claude Code、Codex、Cursor 等编程代理准备的能力增强框架，重点在技能、记忆、安全和研究式开发流程，让代理更像一个可调优的工程搭档。</p>
+      <div class="tag-badges"><span class="tag-badge">AI Agent</span><span class="tag-badge">大模型</span></div>
       <div class="repo-meta"><span>JavaScript</span><span>205,569 stars</span><span>今日 +2,147</span><span>排名持平</span></div>
     </a>
     <a class="rising-card " href="https://github.com/microsoft/markitdown" target="_blank" rel="noreferrer">
@@ -465,6 +526,7 @@ select {
       </div>
       <h3>microsoft/markitdown</h3>
       <p>微软出的文件转 Markdown 工具，可以把 Office 文档、PDF 等资料转换成适合 AI 读取和处理的 Markdown 文本。</p>
+      <div class="tag-badges"><span class="tag-badge">文档处理</span><span class="tag-badge">开发工具</span></div>
       <div class="repo-meta"><span>Python</span><span>142,745 stars</span><span>今日 +2,006</span><span>排名持平</span></div>
     </a>
     <a class="rising-card " href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noreferrer">
@@ -474,6 +536,7 @@ select {
       </div>
       <h3>NousResearch/hermes-agent</h3>
       <p>一个可随用户使用不断成长的 AI Agent 项目，主打长期陪伴、能力积累和更个性化的代理体验。</p>
+      <div class="tag-badges"><span class="tag-badge">AI Agent</span><span class="tag-badge">大模型</span></div>
       <div class="repo-meta"><span>Python</span><span>178,954 stars</span><span>今日 +1,736</span><span>排名持平</span></div>
     </a>
     <a class="rising-card " href="https://github.com/D4Vinci/Scrapling" target="_blank" rel="noreferrer">
@@ -483,6 +546,7 @@ select {
       </div>
       <h3>D4Vinci/Scrapling</h3>
       <p>自适应网页抓取框架，从单个请求到大规模爬取都能覆盖，适合做数据采集、内容抽取和自动化爬虫。</p>
+      <div class="tag-badges"><span class="tag-badge">网页抓取</span><span class="tag-badge">开发工具</span></div>
       <div class="repo-meta"><span>Python</span><span>60,125 stars</span><span>今日 +1,078</span><span>排名持平</span></div>
     </a></div>
       </section>
@@ -500,7 +564,7 @@ select {
       <div class="rank-num">#1</div>
       <div class="rank-main">
         <div class="repo-title">chopratejas/headroom</div>
-        <p class="use-case">面向 AI 应用的上下文压缩工具，可以在日志、工具输出、文件和 RAG 片段进入大模型前先压缩，减少 token 消耗，同时尽量保持回答质量。</p>
+        <p class="use-case">面向 AI 应用的上下文压缩工具，可以在日志、工具输出、文件和 RAG 片段进入大模型前先压缩，减少 token 消耗，同时尽量保持回答质量。<div class="tag-badges"><span class="tag-badge">上下文工程</span><span class="tag-badge">大模型</span></div></p>
         <p class="repo-desc">Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 60-95% fewer tokens, same answers. Library, proxy, MCP server.</p>
       </div>
       <div class="rank-stats">
@@ -517,7 +581,7 @@ select {
       <div class="rank-num">#2</div>
       <div class="rank-main">
         <div class="repo-title">affaan-m/ECC</div>
-        <p class="use-case">给 Claude Code、Codex、Cursor 等编程代理准备的能力增强框架，重点在技能、记忆、安全和研究式开发流程，让代理更像一个可调优的工程搭档。</p>
+        <p class="use-case">给 Claude Code、Codex、Cursor 等编程代理准备的能力增强框架，重点在技能、记忆、安全和研究式开发流程，让代理更像一个可调优的工程搭档。<div class="tag-badges"><span class="tag-badge">AI Agent</span><span class="tag-badge">大模型</span></div></p>
         <p class="repo-desc">The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.</p>
       </div>
       <div class="rank-stats">
@@ -534,7 +598,7 @@ select {
       <div class="rank-num">#3</div>
       <div class="rank-main">
         <div class="repo-title">aquasecurity/trivy</div>
-        <p class="use-case">安全扫描工具，用来检查容器、Kubernetes、代码仓库和云环境里的漏洞、配置错误、密钥泄露和 SBOM 风险。</p>
+        <p class="use-case">安全扫描工具，用来检查容器、Kubernetes、代码仓库和云环境里的漏洞、配置错误、密钥泄露和 SBOM 风险。<div class="tag-badges"><span class="tag-badge">安全工具</span><span class="tag-badge">DevOps</span></div></p>
         <p class="repo-desc">Find vulnerabilities, misconfigurations, secrets, SBOM in containers, Kubernetes, code repositories, clouds and more</p>
       </div>
       <div class="rank-stats">
@@ -551,7 +615,7 @@ select {
       <div class="rank-num">#4</div>
       <div class="rank-main">
         <div class="repo-title">NousResearch/hermes-agent</div>
-        <p class="use-case">一个可随用户使用不断成长的 AI Agent 项目，主打长期陪伴、能力积累和更个性化的代理体验。</p>
+        <p class="use-case">一个可随用户使用不断成长的 AI Agent 项目，主打长期陪伴、能力积累和更个性化的代理体验。<div class="tag-badges"><span class="tag-badge">AI Agent</span><span class="tag-badge">大模型</span></div></p>
         <p class="repo-desc">The agent that grows with you</p>
       </div>
       <div class="rank-stats">
@@ -568,7 +632,7 @@ select {
       <div class="rank-num">#5</div>
       <div class="rank-main">
         <div class="repo-title">microsoft/markitdown</div>
-        <p class="use-case">微软出的文件转 Markdown 工具，可以把 Office 文档、PDF 等资料转换成适合 AI 读取和处理的 Markdown 文本。</p>
+        <p class="use-case">微软出的文件转 Markdown 工具，可以把 Office 文档、PDF 等资料转换成适合 AI 读取和处理的 Markdown 文本。<div class="tag-badges"><span class="tag-badge">文档处理</span><span class="tag-badge">开发工具</span></div></p>
         <p class="repo-desc">Python tool for converting files and office documents to Markdown.</p>
       </div>
       <div class="rank-stats">
@@ -585,7 +649,7 @@ select {
       <div class="rank-num">#6</div>
       <div class="rank-main">
         <div class="repo-title">nesquena/hermes-webui</div>
-        <p class="use-case">Hermes Agent 的网页端和移动端界面，让用户可以更方便地从浏览器或手机使用 Hermes Agent。</p>
+        <p class="use-case">Hermes Agent 的网页端和移动端界面，让用户可以更方便地从浏览器或手机使用 Hermes Agent。<div class="tag-badges"><span class="tag-badge">AI Agent</span><span class="tag-badge">大模型</span></div></p>
         <p class="repo-desc">Hermes WebUI: The best way to use Hermes Agent from the web or from your phone!</p>
       </div>
       <div class="rank-stats">
@@ -602,7 +666,7 @@ select {
       <div class="rank-num">#7</div>
       <div class="rank-main">
         <div class="repo-title">D4Vinci/Scrapling</div>
-        <p class="use-case">自适应网页抓取框架，从单个请求到大规模爬取都能覆盖，适合做数据采集、内容抽取和自动化爬虫。</p>
+        <p class="use-case">自适应网页抓取框架，从单个请求到大规模爬取都能覆盖，适合做数据采集、内容抽取和自动化爬虫。<div class="tag-badges"><span class="tag-badge">网页抓取</span><span class="tag-badge">开发工具</span></div></p>
         <p class="repo-desc">🕷️ An adaptive Web Scraping framework that handles everything from a single request to a full-scale crawl!</p>
       </div>
       <div class="rank-stats">
@@ -619,7 +683,7 @@ select {
       <div class="rank-num">#8</div>
       <div class="rank-main">
         <div class="repo-title">opendataloader-project/opendataloader-pdf</div>
-        <p class="use-case">面向 AI 数据处理的 PDF 解析器，帮助把 PDF 内容整理成更容易被模型读取、检索和自动化处理的数据。</p>
+        <p class="use-case">面向 AI 数据处理的 PDF 解析器，帮助把 PDF 内容整理成更容易被模型读取、检索和自动化处理的数据。<div class="tag-badges"><span class="tag-badge">PDF解析</span><span class="tag-badge">文档处理</span></div></p>
         <p class="repo-desc">PDF Parser for AI-ready data. Automate PDF accessibility. Open-source.</p>
       </div>
       <div class="rank-stats">
@@ -636,7 +700,7 @@ select {
       <div class="rank-num">#9</div>
       <div class="rank-main">
         <div class="repo-title">odoo/odoo</div>
-        <p class="use-case">开源企业应用套件，覆盖 CRM、销售、库存、财务、人力等业务系统，适合搭建一体化公司管理平台。</p>
+        <p class="use-case">开源企业应用套件，覆盖 CRM、销售、库存、财务、人力等业务系统，适合搭建一体化公司管理平台。<div class="tag-badges"><span class="tag-badge">业务系统</span><span class="tag-badge">后端服务</span></div></p>
         <p class="repo-desc">Odoo. Open Source Apps To Grow Your Business.</p>
       </div>
       <div class="rank-stats">
@@ -653,7 +717,7 @@ select {
       <div class="rank-num">#10</div>
       <div class="rank-main">
         <div class="repo-title">Open-LLM-VTuber/Open-LLM-VTuber</div>
-        <p class="use-case">本地运行的语音交互虚拟主播项目，可以让用户用语音和任意大模型对话，并支持语音打断和 Live2D 形象。</p>
+        <p class="use-case">本地运行的语音交互虚拟主播项目，可以让用户用语音和任意大模型对话，并支持语音打断和 Live2D 形象。<div class="tag-badges"><span class="tag-badge">大模型</span><span class="tag-badge">AI Agent</span></div></p>
         <p class="repo-desc">Talk to any LLM with hands-free voice interaction, voice interruption, and Live2D taking face running locally across platforms</p>
       </div>
       <div class="rank-stats">
@@ -680,7 +744,7 @@ select {
       </section>
 
       <footer class="report-footer">
-        <p>*报告生成时间：2026-06-04 07:49:35*</p>
+        <p>*报告生成时间：2026-06-05 08:54:38*</p>
       </footer>
     </main>
   </body>

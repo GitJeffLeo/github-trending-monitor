@@ -336,6 +336,26 @@ select {
   margin-top: 6px;
 }
 
+/* 标签徽章 */
+.tag-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.tag-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
 .repo-desc {
   margin-top: 6px;
   color: var(--muted);

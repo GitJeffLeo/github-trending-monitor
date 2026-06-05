@@ -83,8 +83,48 @@ async function readJson(file, fallback) {
   return JSON.parse(await readFile(file, "utf8"));
 }
 
-function buildComparison(items, previousItems) {
-  const previousByRepo = new Map(previousItems.map((item) => [item.repo, item]));
+// 滑动窗口天数：仓库在此天数内出现过则不标记为"新入榜"
+const WINDOW_DAYS = 7;
+
+/**
+ * 加载最近 windowDays 天内出现过的所有仓库集合，
+ * 以及最新一天的完整数据（用于 rank/stars 增量计算）。
+ */
+async function loadWindowState(index, today) {
+  const pastSnapshots = (index.snapshots ?? [])
+    .filter((s) => s.date !== today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const windowSnapshots = pastSnapshots.slice(-WINDOW_DAYS);
+
+  // 构建窗口内出现过的仓库集合
+  const recentlySeen = new Set();
+  for (const snap of windowSnapshots) {
+    const data = await readJson(
+      resolve(DATA_DIR, snap.file),
+      { repositories: [] }
+    );
+    for (const repo of (data.repositories || [])) {
+      recentlySeen.add(repo.repo);
+    }
+  }
+
+  // 最新一天的数据用于 rank/stars 增量
+  const latestSnap = windowSnapshots.at(-1);
+  let latestItems = [];
+  if (latestSnap) {
+    const latestData = await readJson(
+      resolve(DATA_DIR, latestSnap.file),
+      { repositories: [] }
+    );
+    latestItems = latestData.repositories || [];
+  }
+
+  return { recentlySeen, latestItems };
+}
+
+function buildComparison(items, latestItems, recentlySeen) {
+  const previousByRepo = new Map(latestItems.map((item) => [item.repo, item]));
 
   return items.map((item) => {
     const previous = previousByRepo.get(item.repo);
@@ -93,7 +133,8 @@ function buildComparison(items, previousItems) {
       previousRank: previous?.rank ?? null,
       rankChange: previous ? previous.rank - item.rank : null,
       starChangeSinceLastSnapshot: previous ? item.stars - previous.stars : null,
-      isNewToday: !previous
+      // 关键改动：使用 7 天滑动窗口判定"新入榜"
+      isNewToday: !recentlySeen.has(item.repo)
     };
   });
 }
@@ -109,12 +150,9 @@ async function main() {
   }
 
   const index = await readJson(INDEX_FILE, { snapshots: [] });
-  const previousDate = index.snapshots.at(-1)?.date;
-  const previousSnapshot = previousDate
-    ? await readJson(resolve(DATA_DIR, `${previousDate}.json`), { repositories: [] })
-    : { repositories: [] };
+  const { recentlySeen, latestItems } = await loadWindowState(index, today);
 
-  const repositories = buildComparison(items, previousSnapshot.repositories ?? []);
+  const repositories = buildComparison(items, latestItems, recentlySeen);
   const snapshot = {
     date: today,
     source: TRENDING_URL,

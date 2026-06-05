@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT ?? 4173);
-const NODE = "C:\\Users\\133\\.workbuddy\\binaries\\node\\versions\\22.12.0\\node.exe";
+const NODE = "C:\\Users\\133\\.workbuddy\\binaries\\node\\versions\\22.22.2\\node.exe";
 
 const types = new Map([
   [".html", "text/html; charset=utf-8"],

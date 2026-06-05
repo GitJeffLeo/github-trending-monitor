@@ -1,7 +1,8 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { summarize, tagLabel, generateBrowserEngineJSON } from "../lib/summaries.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_DIR = resolve(ROOT, "data");
@@ -40,19 +41,9 @@ function rankChange(item) {
   return "暂无昨日对比";
 }
 
-function summarizeUse(item, summaries) {
-  if (summaries[item.repo]) return summaries[item.repo];
-
-  const text = `${item.name} ${item.description}`.toLowerCase();
-  if (text.includes("markdown")) return "这个项目主要用于把文件或内容转换成 Markdown，方便后续整理、检索和交给 AI 处理。";
-  if (text.includes("pdf")) return "这个项目围绕 PDF 解析和内容抽取，适合把文档资料整理成更适合自动化处理的数据。";
-  if (text.includes("agent")) return "这个项目围绕 AI Agent 构建，可能用于自动完成任务、增强代理能力或提供更自然的交互体验。";
-  if (text.includes("scrap") || text.includes("crawl")) return "这个项目主要用于网页抓取和数据采集，适合把网站内容批量整理成可分析的数据。";
-  if (text.includes("security") || text.includes("vulnerab")) return "这个项目偏安全工具方向，用来发现漏洞、配置风险或代码与基础设施中的安全问题。";
-  if (text.includes("llm") || text.includes("model")) return "这个项目服务于大模型应用，可能用于模型调用、推理优化、上下文处理或交互体验改进。";
-  if (text.includes("business") || text.includes("crm")) return "这个项目偏业务系统方向，适合支撑企业管理、销售、客户关系或内部流程。";
-
-  return `这个 ${item.language || "开源"} 项目正在获得关注，主题与「${item.name}」相关；建议点开仓库进一步确认具体使用场景。`;
+function tagBadges(tags) {
+  if (!tags || tags.length === 0) return "";
+  return `<div class="tag-badges">${tags.map((t) => `<span class="tag-badge">${tagLabel(t)}</span>`).join("")}</div>`;
 }
 
 function metaPills(item) {
@@ -65,6 +56,7 @@ function metaPills(item) {
 }
 
 function risingCard(item, index, summaries) {
+  const result = summarize(item.repo, item.name, item.description, item.language, summaries);
   return `
     <a class="rising-card ${index === 0 ? "primary" : ""}" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
       <div class="rising-topline">
@@ -72,18 +64,20 @@ function risingCard(item, index, summaries) {
         <strong>+${item.starsToday.toLocaleString("zh-CN")}</strong>
       </div>
       <h3>${escapeHtml(item.repo)}</h3>
-      <p>${escapeHtml(summarizeUse(item, summaries))}</p>
+      <p>${escapeHtml(result.summary)}</p>
+      ${tagBadges(result.tags)}
       <div class="repo-meta">${metaPills(item)}</div>
     </a>`;
 }
 
 function tableRow(item, summaries) {
+  const result = summarize(item.repo, item.name, item.description, item.language, summaries);
   return `
     <a class="rank-row ${item.isNewToday ? "is-new" : ""}" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
       <div class="rank-num">#${item.rank}</div>
       <div class="rank-main">
         <div class="repo-title">${escapeHtml(item.repo)}</div>
-        <p class="use-case">${escapeHtml(summarizeUse(item, summaries))}</p>
+        <p class="use-case">${escapeHtml(result.summary)}${tagBadges(result.tags)}</p>
         <p class="repo-desc">${escapeHtml(item.description || "暂无英文简介")}</p>
       </div>
       <div class="rank-stats">
@@ -183,6 +177,17 @@ async function main() {
   await writeFile(REPORT_FILE, html, "utf8");
   console.log(`Built ${datedReportFile}`);
   console.log(`Updated ${REPORT_FILE}`);
+
+  // 生成前端用的规则快照
+  const docsDataDir = resolve(ROOT, "docs", "data");
+  await mkdir(docsDataDir, { recursive: true });
+  const engineJSON = generateBrowserEngineJSON();
+  await writeFile(
+    resolve(docsDataDir, "summaries-engine.json"),
+    JSON.stringify(engineJSON, null, 2),
+    "utf8"
+  );
+  console.log(`Generated docs/data/summaries-engine.json (${engineJSON.categoryRules.length} rules)`);
 }
 
 main().catch((error) => {
