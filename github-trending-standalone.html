@@ -401,6 +401,8 @@
         topTenList.innerHTML = topTen.map(item => rankRow(item)).join("");
       }
 
+      const newCount = repos.filter(r => r.isNewToday).length;
+      document.getElementById("subtitle").textContent = `📦 缓存数据 · ${snapshot.date} 快照，共 ${repos.length} 个项目，${newCount} 个新入榜。`;
       document.getElementById("lastUpdate").textContent = `最近更新：${new Date().toLocaleTimeString("zh-CN")}`;
     }
 
@@ -442,25 +444,34 @@
         </a>`;
     }
 
+    // ===== 日期选择器核心：填充下拉选项（不触发数据加载）=====
+    async function populateDateSelect(snapshots, skipAutoLoad) {
+      const sel = document.getElementById("dateSelect");
+      sel.disabled = false;
+      const sorted = snapshots.slice().sort((a,b) => a.date.localeCompare(b.date));
+      sel.innerHTML = sorted.reverse().map(s => {
+        const isLatest = s.date === sorted.at(-1).date;
+        return `<option value="${s.date}" ${isLatest?"selected":""}>${s.date}${isLatest?" (最新)":""}</option>`;
+      }).join("");
+      sel.onchange = async () => {
+        const snap = await fetchRemoteData(sel.value);
+        if (snap) renderSnapshot(snap);
+        else alert("加载数据失败，请检查网络连接");
+      };
+      // 仅在首次初始化时自动加载最新数据，避免覆盖实时抓取结果
+      if (!skipAutoLoad) {
+        const latestSnap = await fetchRemoteData(sorted.at(-1).date);
+        if (latestSnap) renderSnapshot(latestSnap);
+      }
+    }
+
     // ===== 初始化历史日期选择器 =====
-    async function initDateSelect() {
+    async function initDateSelect(skipAutoLoad) {
       const sel = document.getElementById("dateSelect");
       // 先尝试从远程加载
       let snapshots = await fetchRemoteIndex();
       if (snapshots && snapshots.length > 0) {
-        sel.disabled = false;
-        sel.innerHTML = snapshots.slice().reverse().map(s => {
-          const isLatest = s.date === snapshots.at(-1).date;
-          return `<option value="${s.date}" ${isLatest?"selected":""}>${s.date}${isLatest?" (最新)":""}</option>`;
-        }).join("");
-        sel.onchange = async () => {
-          const snap = await fetchRemoteData(sel.value);
-          if (snap) renderSnapshot(snap);
-          else alert("加载数据失败，请检查网络连接");
-        };
-        // 自动加载最新
-        const latestSnap = await fetchRemoteData(snapshots.at(-1).date);
-        if (latestSnap) renderSnapshot(latestSnap);
+        await populateDateSelect(snapshots, skipAutoLoad);
         return;
       }
 
@@ -471,21 +482,13 @@
         sel.disabled = true;
         return;
       }
-      sel.disabled = false;
-      sel.innerHTML = index.snapshots.slice().reverse().map(s => {
-        const isLatest = s.date === index.snapshots.at(-1).date;
-        return `<option value="${s.date}" ${isLatest?"selected":""}>${s.date}${isLatest?" (最新)":""}</option>`;
-      }).join("");
+      const localSnapshots = index.snapshots.map(s => ({ date: s.date, file: s.file }));
+      await populateDateSelect(localSnapshots, skipAutoLoad);
+      // 本地模式下调整 onchange 使用本地加载
       sel.onchange = () => {
         const snap = loadSnapshot(sel.value);
         if (snap) renderSnapshot(snap);
       };
-      // 自动加载最新
-      const latest = index.snapshots.at(-1);
-      if (latest) {
-        const snap = loadSnapshot(latest.date);
-        if (snap) renderSnapshot(snap);
-      }
     }
 
     // ===== 核心：抓取数据 =====
@@ -572,11 +575,11 @@
         saveSnapshot(snapshot);
         renderSnapshot(snapshot);
 
-        // 更新日期选择器
-        await initDateSelect();
+        // 刷新日期选择器下拉列表，但不自动加载（避免覆盖刚抓取的实时数据）
+        await initDateSelect(true);
 
         const newCount = enriched.filter(r => r.isNewToday).length;
-        document.getElementById("subtitle").textContent = `${today} 抓取自 GitHub Trending，共 ${repos.length} 个项目，${newCount} 个新入榜。`;
+        document.getElementById("subtitle").textContent = `🟢 实时数据 · ${today} 抓取自 GitHub Trending，共 ${repos.length} 个项目，${newCount} 个新入榜。`;
       } catch(err) {
         risingList.innerHTML = `<div class="status"><p>❌ 解析失败：${esc(err.message)}</p></div>`;
       }
