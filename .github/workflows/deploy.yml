@@ -2,8 +2,8 @@ name: Fetch GitHub Trending & Deploy
 
 on:
   schedule:
-    # 每天 UTC 1:00 = 北京时间 09:00
-    - cron: '0 1 * * *'
+    # 每天 UTC 10:00 = 北京时间 18:00（此时 Trending 数据已完整，可拿到 25 条）
+    - cron: '0 10 * * *'
   workflow_dispatch:  # 允许手动触发
 
 # 权限：contents 写权限用于 git push，pages 用于部署
@@ -48,8 +48,10 @@ jobs:
         run: |
           # 创建 .nojekyll 阻止 Jekyll 处理
           touch docs/.nojekyll
-          # 复制独立 HTML 作为首页
+          # 复制独立 HTML 作为首页（带实时抓取按钮）
           cp github-trending-standalone.html docs/index.html
+          # 复制静态报告（无按钮纯报告版本）
+          cp report.html docs/report.html 2>/dev/null || true
           # 复制数据文件到 docs/data/
           mkdir -p docs/data
           cp data/*.json docs/data/ || echo "⚠️ 暂无数据文件"
@@ -66,7 +68,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ docs/
+          git add data/ docs/ report.html *.html 2>/dev/null || true
           # 只在有变化时才提交
           if ! git diff --staged --quiet; then
             git commit -m "chore: auto-update trending data for $(TZ=Asia/Shanghai date +'%Y-%m-%d')"
@@ -76,7 +78,6 @@ jobs:
           else
             echo "ℹ️ 数据无变化，跳过提交"
           fi
-        continue-on-error: true  # 如果没有变化则跳过
 
       - name: 上传 Pages 产物
         uses: actions/upload-pages-artifact@v3
